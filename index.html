@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ja" dir="ltr">
+<head>
+    <meta charset="utf-8" />
+    <title>Realtime Sindo</title>
+    <link rel="icon" href="favicon.ico">
+    <link rel="apple-touch-icon" href="favicon.ico">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+        }
+        .selector {
+            position: absolute;
+            top: 5px;
+            left: 10px;
+            z-index: 2;
+            background: #707070;
+            padding: 5px;
+            border-radius: 5px;
+            color: white;
+            font-size: 14px;
+        }
+        .selector select {
+            background: #fff;
+            color: black;
+            border: none;
+            padding: 2px;
+            font-size: 14px;
+        }
+        .container {
+            position: absolute;
+            top: 45px;
+            left: 10px;
+            width: 352px;
+            height: 400px;
+        }
+        .fixed-image, .real-time-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .real-time-image {
+            z-index: 1;
+            visibility: hidden;
+        }
+        .fixed-image {
+            z-index: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="selector">
+        <label for="monitorSelect">モニタ選択  :</label>
+        <select id="monitorSelect" onchange="updateImage()">
+            <option value="jma_s">強震モニタ</option>
+            <option value="abrspmx_s">長周期地震動モニタ</option>
+        </select>
+    </div>
+
+    <div class="container">
+        <img id="fixedImage" class="fixed-image" src="https://smi.lmoniexp.bosai.go.jp/data/map_img/CommonImg/base_map_b.gif">
+        <img id="realTimeImage" class="real-time-image" src="placeholder.jpg">
+    </div>
+
+    <script>
+        function pad(number) {
+            return number < 10 ? '0' + number : number;
+        }
+
+        function updateImage() {
+            const now = new Date();
+            now.setMilliseconds(now.getMilliseconds() - 1500);
+
+            const year = now.getFullYear();
+            const month = pad(now.getMonth() + 1);
+            const day = pad(now.getDate());
+            const hours = pad(now.getHours());
+            const minutes = pad(now.getMinutes());
+            const seconds = pad(now.getSeconds());
+
+            const datePart = `${year}${month}${day}`;
+            const timePart = `${hours}${minutes}${seconds}`;
+
+            const monitorType = document.getElementById('monitorSelect').value;
+            const baseUrl = monitorType === "jma_s" 
+                ? "https://smi.lmoniexp.bosai.go.jp/data/map_img/RealTimeImg/jma_s"
+                : "https://www.lmoni.bosai.go.jp/monitor/data/data/map_img/RealTimeImg/abrspmx_s";
+
+            const url = `${baseUrl}/${datePart}/${datePart}${timePart}.${monitorType}.gif`;
+
+            const tempImage = new Image();
+            tempImage.onload = function() {
+                const realTimeImage = document.getElementById('realTimeImage');
+                realTimeImage.src = url;
+                realTimeImage.style.visibility = 'visible';
+            };
+            tempImage.onerror = function() {
+                console.error(`画像の読み込みに失敗しました: ${url}`);
+                const realTimeImage = document.getElementById('realTimeImage');
+                realTimeImage.src = document.getElementById('fixedImage').src;
+                realTimeImage.style.visibility = 'visible';
+            };
+            tempImage.src = url;
+        }
+
+        updateImage();
+        setInterval(updateImage, 500);
+    </script>
+</body>
+</html>
