@@ -1,10 +1,8 @@
 <!DOCTYPE html>
-<html lang="ja" dir="ltr">
+<html lang="ja">
 <head>
-    <meta charset="utf-8" />
-    <title>Realtime Sindo</title>
-    <link rel="icon" href="favicon.ico">
-    <link rel="apple-touch-icon" href="favicon.ico">
+    <meta charset="utf-8">
+    <title>強震モニタ</title>
     <style>
         html, body {
             margin: 0;
@@ -56,10 +54,40 @@
 </head>
 <body>
     <div class="selector">
-        <label for="monitorSelect">モニタ選択  :</label>
+        <label for="monitorSelect">モニタ選択 :</label>
         <select id="monitorSelect" onchange="updateImage()">
-            <option value="jma_s">強震モニタ</option>
-            <option value="abrspmx_s">長周期地震動モニタ</option>
+            <option value="category_jma" disabled>─ 強震モニタ 地表 ─</option>
+            <option value="jma_s">リアルタイム震度</option>
+            <option value="acmap_s">最大加速度</option>
+            <option value="vcmap_s">最大速度</option>
+            <option value="dcmap_s">最大変位</option>
+            <option value="rsp0125_s">0.125Hz速度応答</option>
+            <option value="rsp0250_s">0.25Hz速度応答</option>
+            <option value="rsp0500_s">0.5Hz速度応答</option>
+            <option value="rsp1000_s">1.0Hz速度応答</option>
+            <option value="rsp2000_s">2.0Hz速度応答</option>
+            <option value="rsp4000_s">4.0Hz速度応答</option>
+
+            <option value="category_jma_b" disabled>─ 強震モニタ 地中 ─</option>
+            <option value="jma_b">リアルタイム震度</option>
+            <option value="acmap_b">最大加速度</option>
+            <option value="vcmap_b">最大速度</option>
+            <option value="dcmap_b">最大変位</option>
+            <option value="rsp0125_b">0.125Hz速度応答</option>
+            <option value="rsp0250_b">0.25Hz速度応答</option>
+            <option value="rsp0500_b">0.5Hz速度応答</option>
+            <option value="rsp1000_b">1.0Hz速度応答</option>
+            <option value="rsp2000_b">2.0Hz速度応答</option>
+            <option value="rsp4000_b">4.0Hz速度応答</option>
+
+            <option value="category_abrspmx" disabled>─ 長周期地震動モニタ ─</option>
+            <option value="abrsp1s_s">階級データ（周期1秒台）</option>
+            <option value="abrsp2s_s">階級データ（周期2秒台）</option>
+            <option value="abrsp3s_s">階級データ（周期3秒台）</option>
+            <option value="abrsp4s_s">階級データ（周期4秒台）</option>
+            <option value="abrsp5s_s">階級データ（周期5秒台）</option>
+            <option value="abrsp6s_s">階級データ（周期6秒台）</option>
+            <option value="abrsp7s_s">階級データ（周期7秒台）</option>
         </select>
     </div>
 
@@ -88,25 +116,31 @@
             const timePart = `${hours}${minutes}${seconds}`;
 
             const monitorType = document.getElementById('monitorSelect').value;
-            const baseUrl = monitorType === "jma_s" 
-                ? "https://smi.lmoniexp.bosai.go.jp/data/map_img/RealTimeImg/jma_s"
-                : "https://www.lmoni.bosai.go.jp/monitor/data/data/map_img/RealTimeImg/abrspmx_s";
 
-            const url = `${baseUrl}/${datePart}/${datePart}${timePart}.${monitorType}.gif`;
+            if (monitorType.startsWith("category_")) return;
+
+            let baseUrl;
+            if (monitorType.startsWith("abrsp")) {
+                baseUrl = `https://www.lmoni.bosai.go.jp/monitor/data/data/map_img/RealTimeImg/${monitorType}/${datePart}/${datePart}${timePart}.${monitorType}.gif`;
+            } else {
+                baseUrl = `https://smi.lmoniexp.bosai.go.jp/data/map_img/RealTimeImg/${monitorType}/${datePart}/${datePart}${timePart}.${monitorType}.gif`;
+            }
+
+            console.log("取得URL: ", baseUrl);
 
             const tempImage = new Image();
             tempImage.onload = function() {
                 const realTimeImage = document.getElementById('realTimeImage');
-                realTimeImage.src = url;
+                realTimeImage.src = baseUrl;
                 realTimeImage.style.visibility = 'visible';
             };
             tempImage.onerror = function() {
-                console.error(`画像の読み込みに失敗しました: ${url}`);
+                console.error(`画像の読み込みに失敗しました: ${baseUrl}`);
                 const realTimeImage = document.getElementById('realTimeImage');
                 realTimeImage.src = document.getElementById('fixedImage').src;
                 realTimeImage.style.visibility = 'visible';
             };
-            tempImage.src = url;
+            tempImage.src = baseUrl;
         }
 
         updateImage();
